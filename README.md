@@ -1,153 +1,358 @@
-# 💻 Backend Intern Assignment
+# Social Feed Backend API
 
-## 📋 Overview
+A RESTful backend service for a social media platform featuring user management, posts, likes, follows, and activity feeds. Built with TypeScript, Express, TypeORM, and SQLite.
 
-This project involves building a backend for a social media platform with features for posts, likes, follows, and hashtags. You'll be creating the core functionality that would support a social networking application.
+---
 
-## ✨ Features
+## 🚀 Features
 
-### 🎯 Core Functionality
+### Core Functionality
+- **User Management**: Create and retrieve user profiles
+- **Posts**: Create, retrieve, and manage user posts
+- **Social Interactions**: Like/unlike posts, follow/unfollow users
+- **Activity Feed**: Personalized feed showing posts from followed users
+- **Data Validation**: Schema validation using Joi for all API inputs
 
-- 📝 Create posts with text content
-- 👥 Follow and unfollow other users
-- ❤️ Like posts
-- #️⃣ Tag posts with hashtags
+### Technical Highlights
+- **Type-Safe Development**: Full TypeScript implementation for compile-time safety
+- **ORM-Based Architecture**: TypeORM for database interactions with entity-relationship modeling
+- **Validation Layer**: Request validation using Joi schemas before processing
+- **RESTful Design**: Clean API endpoints following REST conventions
+- **Relational Data Model**: Properly structured MySQL database with foreign key relationships
 
-### 🔌 Essential API Endpoints
+---
 
-You must implement CRUD (Create, Read, Update, Delete) operations for all entities. Additionally, implement these specific endpoints:
+## 🛠️ Tech Stack
 
-1. **`/api/feed`** - Show users their personalized content stream 🌊
+| Category | Technologies |
+|----------|-------------|
+| **Language** | TypeScript |
+| **Runtime** | Node.js |
+| **Framework** | Express.js |
+| **ORM** | TypeORM |
+| **Database** | SQLite |
+| **Validation** | Joi |
 
-   - Returns a paginated list of posts from users the current user follows
-   - Posts should be sorted by creation date (newest first)
-   - Include post content, author details, like count, and hashtags
-   - Support pagination with `limit` and `offset` query parameters
+---
 
-2. **`/api/posts/hashtag/:tag`** - Find posts by hashtag 🔍
+## 📁 Project Structure
 
-   - Returns all posts containing the specified hashtag
-   - Support case-insensitive hashtag matching
-   - Include post content, author details, and like count
-   - Implement pagination with `limit` and `offset` parameters
+```
+src/
+├── controllers/        # Request handlers for each feature
+│   ├── ActivityController.ts
+│   ├── FollowController.ts
+│   ├── LikeController.ts
+│   ├── PostController.ts
+│   ├── UnfollowController.ts
+│   └── UserController.ts
+├── entities/          # TypeORM entity definitions
+│   ├── User.ts        # User entity with relationships
+│   ├── Post.ts        # Post entity linked to users
+│   ├── Like.ts        # Like relationship (user + post)
+│   └── Follow.ts      # Follow relationship (follower + following)
+├── routes/            # API route definitions
+│   ├── user.routes.ts
+│   ├── post.routes.ts
+│   └── ...
+├── validations/       # Joi validation schemas
+│   ├── user.validation.ts
+│   ├── post.validation.ts
+│   └── ...
+├── middleware/        # Custom middleware (validation, etc.)
+└── server.ts          # Application entry point
+```
 
-3. **`/api/users/:id/followers`** - Get user's followers 👥
+---
 
-   - Returns a list of users who follow the specified user
-   - Include follower's basic profile information
-   - Support pagination with `limit` and `offset` parameters
-   - Sort followers by follow date (newest first)
-   - Include total follower count in response
+## 🗃️ Database Schema
 
-4. **`/api/users/:id/activity`** - View user activity history 📜
+### Entities & Relationships
 
-   - Returns a chronological list of user activities
-   - Include posts created and likes given
-   - Show follow/unfollow actions
-   - Support filtering by activity type and date range
-   - Implement pagination for large activity histories
+**User**
+- `id` (Primary Key)
+- `name`
+- `email` (Unique)
+- `createdAt`
 
-### 🧪 Testing Requirements
+**Post**
+- `id` (Primary Key)
+- `userId` (Foreign Key → User)
+- `content`
+- `createdAt`
 
-- **Important**: If the test script fails to run, your submission will not be considered for evaluation ⚠️
-- The shell script should test all CRUD operations for each entity and all the endpoints defined above
-- Each endpoint must have its own test case in the shell script
-- Test coverage is mandatory for all endpoints
-- Test results should be clearly logged and visible in the console output
+**Like**
+- `userId` (Foreign Key → User)
+- `postId` (Foreign Key → Post)
+- Composite Primary Key: (userId, postId)
 
-### 📝 Test Script Structure
+**Follow**
+- `followerId` (Foreign Key → User)
+- `followingId` (Foreign Key → User)
+- Composite Primary Key: (followerId, followingId)
 
-The project includes a `test.sh` script that provides an interactive testing interface with the following structure:
+### Relationships
+- User **has many** Posts (one-to-many)
+- User **has many** Likes (one-to-many)
+- User **has many** Followers (many-to-many via Follow)
+- Post **has many** Likes (one-to-many)
 
-1. **Main Menu**
+---
 
-   - List of all entities
-   - Exit option
+## 🔌 API Endpoints
 
-2. **Entity Submenus**
-   Each entity has its own submenu with CRUD operations:
+### User Management
+```http
+POST   /api/users              # Create a new user
+GET    /api/users/:id          # Get user by ID
+```
 
-   - Get all
-   - Get by ID
-   - Create
-   - Update
-   - Delete
-   - Back to main menu
+### Posts
+```http
+POST   /api/posts              # Create a new post
+GET    /api/posts/:id          # Get post by ID
+GET    /api/users/:id/posts    # Get all posts by a user
+```
 
-3. **Special Endpoint Tests**
-   The script includes tests for all the specific endpoints mentioned above, in addition to the standard CRUD operations on entities.
+### Likes
+```http
+POST   /api/posts/:id/like     # Like a post
+DELETE /api/posts/:id/like     # Unlike a post
+```
 
-Note: The test script follows a consistent structure for all entities and endpoints. Each new entity should follow the same submenu pattern as the existing implementations.
+### Follows
+```http
+POST   /api/users/:id/follow   # Follow a user
+DELETE /api/users/:id/follow   # Unfollow a user
+```
 
-### 🏗️ Code Structure
+### Activity Feed
+```http
+GET    /api/users/:id/feed     # Get personalized feed (posts from followed users)
+```
 
-- Follow TypeORM entity structure (see `src/entities/User.ts`) for all entities
-- ⚠️ Do not use the `synchronize: true` option in TypeORM - use migrations instead (see `src/migrations/1713427200000-CreateUserTable.ts`)
-- Use appropriate column types and decorators
-- Add Joi validations for all entities to ensure data integrity
-- Follow the API pattern established in the codebase for consistency
-- Migration commands:
-  - `npm run migration:generate` - Generate new migrations
-  - `npm run migration:run` - Apply pending migrations
-  - `npm run migration:revert` - Rollback last migration
+---
 
-### 💾 Database Design
+## ⚙️ Setup & Installation
 
-- Create proper relationships between entities
-- Implement efficient indexes for quick queries ⚡
-- Use composite indexes where needed
-- Document your indexing decisions 📚
+### Prerequisites
+- Node.js (v16+)
+- npm or yarn
+- SQLite (bundled with TypeORM, no separate installation needed)
 
-## 📚 Development Guidelines
+### Installation Steps
 
-1. ✅ Implement all required entities
-2. ✅ Define proper relationships
-3. ✅ Write efficient queries
-4. ✅ Plan smart indexing
-5. ✅ Maintain code quality
-6. ✅ Keep structure consistent
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/NeverSpot/be-intern-assignment.git
+   cd be-intern-assignment
+   ```
 
-- ⚠️ Do not use LLMs for this assignment
-- All code should be written by you
-- Solutions should demonstrate your own understanding and skills
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-## 📤 Submission Instructions
+3. **Configure environment variables**
+   
+   Create a `.env` file in the root directory:
+   ```env
+   # Database Configuration
+   DB_TYPE=sqlite
+   DB_DATABASE=./database.sqlite
+   
+   # Server Configuration
+   PORT=3000
+   NODE_ENV=development
+   ```
+   
+   > **Note**: SQLite uses a local file (`database.sqlite`) instead of a server connection. No separate database installation required.
 
-To submit your completed assignment:
+4. **Initialize the database**
+   
+   TypeORM will automatically create the SQLite database file on first run. If using migrations:
+   ```bash
+   npm run typeorm migration:run
+   ```
+   
+   Or with synchronize enabled in TypeORM config, tables will auto-create on server start.
 
-1. Fork this repository to your personal GitHub account
-2. Complete the assignment in your forked repository
-3. Push all your changes to your forked repository
-4. Send the link to your forked repository to your assignment reviewer
+5. **Start the development server**
+   ```bash
+   npm run dev
+   ```
 
-**Important Notes:**
+The server will start at `http://localhost:3000`
 
-- Ensure your repository is public so reviewers can access it
-- Make sure all the code is committed and pushed before submitting
-- Do not create pull requests to the original repository
-- Fill in the existing `DESIGN.md` file with:
-  - Database schema design and entity relationships
-  - Indexing strategy for performance optimization
-  - Scalability considerations and solutions
-  - Any other important design considerations
-- ⚠️ Ensure migrations run correctly - submissions which fail the migration script will be disqualified
+---
 
-## 🎙️ Interview Process
+## 🧪 Example Usage
 
-If selected for an interview, you will be asked to:
+### Create a User
+```bash
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john@example.com"
+  }'
+```
 
-- Extend this assignment with additional features in real-time
-- Answer questions about your code, design patterns, and technical decisions
+### Create a Post
+```bash
+curl -X POST http://localhost:3000/api/posts \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": 1,
+    "content": "Hello, world! This is my first post."
+  }'
+```
 
-Please have your development environment fully configured and ready before the interview session.
+### Follow a User
+```bash
+curl -X POST http://localhost:3000/api/users/2/follow \
+  -H "Content-Type: application/json" \
+  -d '{
+    "followerId": 1
+  }'
+```
 
-## 🚀 Getting Started
+### Get Activity Feed
+```bash
+curl http://localhost:3000/api/users/1/feed
+```
 
-1. Fork this repository to your personal GitHub account
-2. Clone your forked repository to your local machine
-3. Run `npm install`
-4. Run migrations with `npm run migration:run` to set up the database
-5. Start the server with `npm run dev`
-6. Use SQLite Viewer Extension in VS Code to view the database, or any other viewer if not using VS Code
+---
 
-Made with ❤️ by the VI team
+## 🧱 Architecture Decisions
+
+### Controller-Based Design
+Each feature has a dedicated controller for single-responsibility handling:
+- **FollowController** → Handles follow logic
+- **UnfollowController** → Handles unfollow logic  
+- **LikeController** → Handles post likes
+- **ActivityController** → Handles feed generation
+
+This separation improves maintainability and testability.
+
+### Validation-First Routing
+All routes pass through Joi validation middleware before reaching controllers. This ensures:
+- Invalid data is rejected early
+- Controllers receive clean, validated data
+- Consistent error responses for validation failures
+
+### TypeORM Entity Relationships
+Proper foreign key constraints and relationships are defined at the entity level, ensuring:
+- Referential integrity
+- Cascade operations where appropriate
+- Type-safe joins and queries
+
+### SQLite for Development
+SQLite is used for simplicity and portability:
+- **Zero configuration** - No separate database server required
+- **File-based** - Entire database stored in a single `.sqlite` file
+- **Portable** - Easy to version control, share, or backup
+- **Production note** - For production deployment, consider migrating to PostgreSQL/MySQL for better concurrency handling
+
+---
+
+## 📊 Data Flow
+
+```
+Request → Route → Validation Middleware → Controller → TypeORM Repository → SQLite
+                      ↓                        ↓
+                   (Reject)               (Process)
+                      ↓                        ↓
+                  Error Response        Success Response
+```
+
+---
+
+## 🔐 Current Limitations
+
+This project is a foundational implementation. The following features are **not yet implemented**:
+
+- **Authentication**: No JWT-based auth or session management
+- **Authorization**: No ownership checks or role-based access control
+- **Service Layer**: Controllers interact directly with repositories (no business logic abstraction)
+- **Error Handling**: No centralized error handler or custom error classes
+- **Transaction Safety**: Follow/unfollow operations don't use database transactions
+- **Rate Limiting**: No request throttling or abuse prevention
+
+These are planned enhancements for future iterations.
+
+---
+
+## 🛣️ Roadmap
+
+Future improvements being considered:
+
+- [ ] Add JWT authentication middleware
+- [ ] Implement service layer for business logic separation
+- [ ] Create centralized error handling
+- [ ] Add transaction support for critical operations
+- [ ] Add unit and integration tests
+- [ ] Implement caching layer (Redis)
+- [ ] Add rate limiting
+
+---
+
+## 📝 Development Scripts
+
+```bash
+# Development server with hot reload
+npm run dev
+
+# Build TypeScript to JavaScript
+npm run build
+
+# Run production build
+npm start
+
+# Run TypeORM migrations
+npm run typeorm migration:run
+
+# Revert last migration
+npm run typeorm migration:revert
+
+# Generate new migration
+npm run typeorm migration:generate -- -n MigrationName
+```
+
+---
+
+## 🤝 Contributing
+
+This is a portfolio project, but feedback and suggestions are welcome! Feel free to:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/improvement`)
+3. Commit your changes (`git commit -m 'Add some improvement'`)
+4. Push to the branch (`git push origin feature/improvement`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+---
+
+## 👤 Author
+
+**Your Name**  
+- GitHub: [@NeverSpot](https://github.com/NeverSpot)
+- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
+
+---
+
+## 🙏 Acknowledgments
+
+- Built as a learning project to explore backend architecture patterns
+- TypeORM documentation and community for ORM best practices
+- Express.js ecosystem for middleware patterns
+
+---
+
+**Note**: This project demonstrates foundational backend development skills including API design, data modeling, validation, and ORM usage. It is actively being improved with additional features and architectural enhancements.
